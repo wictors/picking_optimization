@@ -9,7 +9,7 @@ export function optimizeRoute(
   productsPositions: ProductPosition[],
   startingPosition: Position,
 ): PickingList {
-  const optimalRoute = nearestNeighbor(startingPosition, productsPositions);
+  const optimalRoute = nearestProduct(startingPosition, productsPositions);
   return optimalRoute;
 }
 
@@ -19,7 +19,7 @@ function calculateDistance(a: Position, b: Position): number {
   );
 }
 
-function nearestNeighbor(
+function nearestProduct(
   start: Position,
   points: ProductPosition[],
 ): PickingList {
@@ -30,9 +30,10 @@ function nearestNeighbor(
   const unvisited: ProductPosition[] = [...points];
 
   while (unvisited.length > 0) {
-    let nearestPoint: ProductPosition | null = null;
+    let nearestProduct: ProductPosition | null = null;
     let minDistance = Infinity;
     let nearestIndex: string = '';
+    let nearestPosition: Position = { x: 0, y: 0, z: 0 };
 
     for (let i = 0; i < unvisited.length; i++) {
       const productPosition: Position = {
@@ -43,19 +44,20 @@ function nearestNeighbor(
       const distance = calculateDistance(current, productPosition);
       if (distance < minDistance) {
         minDistance = distance;
-        nearestPoint = unvisited[i];
+        nearestProduct = unvisited[i];
         nearestIndex = unvisited[i].productId;
+        nearestPosition = productPosition;
       }
     }
 
-    if (nearestPoint) {
-      const nearestProduct: PickProduct = {
-        productId: nearestPoint.productId,
-        positionId: nearestPoint.positionId,
+    if (nearestProduct) {
+      const pickProduct: PickProduct = {
+        productId: nearestProduct.productId,
+        positionId: nearestProduct.positionId,
       };
-      route.push(nearestProduct);
+      route.push(pickProduct);
       totalDistance += minDistance;
-      current = { x: nearestPoint.x, y: nearestPoint.y, z: nearestPoint.z };
+      current = nearestPosition;
 
       for (let i = unvisited.length - 1; i >= 0; i--) {
         if (unvisited[i].productId === nearestIndex) {

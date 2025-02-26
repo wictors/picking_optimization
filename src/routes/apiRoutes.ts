@@ -13,7 +13,7 @@ const asyncHandler =
 
 export default () => {
   router.get(
-    '/pick',
+    '/pick-order',
     asyncHandler(async (req: Request, res: Response) => {
       try {
         if (!req.body) {
@@ -25,7 +25,7 @@ export default () => {
           !Object.keys(req.body).includes('startingPosition')
         ) {
           res.status(400).json({
-            error: 'Products and Starting position are required in body',
+            error: 'Products and starting position are required in body',
           });
           return;
         }
@@ -34,6 +34,7 @@ export default () => {
 
         const startingPosition = orderBody.startingPosition;
         const products = orderBody.products;
+
         let productsPositions: ProductPosition[] = [];
         for (const productId of products) {
           const newPositions = await getProductPositions(productId);
@@ -46,12 +47,12 @@ export default () => {
         );
 
         res.status(200).json({
-          message: 'Order received and optimization of picking is ready.',
+          message: 'Order received and optimization of picking order is ready.',
           optimizedRoute,
         });
         return;
       } catch (error: any) {
-        console.error('Error in /pick route', error.response.data);
+        console.error('Error in /pick-order route', error.response.data);
         res.status(500).json(error.response.data);
         return;
       }
