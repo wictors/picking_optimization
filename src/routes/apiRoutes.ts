@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Order, ProductPosition } from '../utils/common';
 import { getProductPositions } from '../externalApiService';
+import { optimizeRoute } from '../service/optimizationRoute';
 
 const router = Router();
 
@@ -30,14 +31,23 @@ export default () => {
         }
 
         const orderBody: Order = req.body;
+
+        const startingPosition = orderBody.startingPosition;
         const products = orderBody.products;
-        const productsPositions: Record<string, ProductPosition[]> = {};
+        let productsPositions: ProductPosition[] = [];
         for (const productId of products) {
-          productsPositions[productId] = await getProductPositions(productId);
+          const newPositions = await getProductPositions(productId);
+          productsPositions = [...productsPositions, ...newPositions];
         }
-        console.log('productsPositions', productsPositions);
+
+        const optimizedRoute = optimizeRoute(
+          productsPositions,
+          startingPosition,
+        );
+
         res.status(200).json({
-          message: 'Order received and picking optimization is ready.',
+          message: 'Order received and optimization of picking is ready.',
+          optimizedRoute,
         });
         return;
       } catch (error: any) {
